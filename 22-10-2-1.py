@@ -83,6 +83,15 @@ def clearScanLine(x):
     print(term.move_yx(4, x) + crt[4][x])
     print(term.move_yx(5, x) + crt[5][x])
 
+def blinkScannedLines(start, end):
+    for _ in range(3):
+        for i in range(start, end):
+            clearScanLine(i)
+        sleep(0.5)
+        for i in range(start, end):
+            greenScanLine(i)
+        sleep(0.5)
+
 def letterRecognition(start, end):
     slice = [crt[i][start:end] for i in range(6)]
     a = [
@@ -160,9 +169,15 @@ def letterRecognition(start, end):
         return None
 
 with term.fullscreen(), term.cbreak(), term.hidden_cursor():
+    print(term.move_yx(9, 0) + 'turning on CRT ...', end='', flush=True)
+    print(term.move_yx(0, 0), end='', flush=True)
+    
     for row in crt:
+        sleep(0.5)
         print("".join(row))
 
+    print(term.move_yx(9, 0) + 'rendering CRT image ...', end='', flush=True)
+    
     drawSprite(x)
 
     for instruction in program:
@@ -184,11 +199,15 @@ with term.fullscreen(), term.cbreak(), term.hidden_cursor():
     for i in range(40):
         greenScanLine(i)
         if scannerWidth >= 4:
+            if i-4 >= 0:
+                clearScanLine(i-4)
             letter = letterRecognition(i+1-4, i+1)
             if letter != None:
+                sleep(0.5)
+                blinkScannedLines(i+1-4, i+1)
                 print(term.move_yx(7, letterPos) + letter, end='', flush=True)
                 letterPos += 1
-            clearScanLine(i-4)
+                sleep(0.5)
         else:
             scannerWidth += 1
         sleep(0.3)
